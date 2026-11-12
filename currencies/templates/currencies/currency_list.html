@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Currency Analytics</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0b1120;
+            color: #e5e7eb;
+        }
+
+        header {
+            background: #111827;
+            border-bottom: 1px solid #263247;
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 23px;
+            font-weight: bold;
+            color: #60a5fa;
+        }
+
+        nav {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: #60a5fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .welcome {
+            margin-bottom: 35px;
+        }
+
+        .welcome h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .welcome p {
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .search-form input {
+            flex: 1;
+            min-width: 220px;
+            padding: 14px;
+            background: #172235;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: white;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .search-form input:focus {
+            border-color: #3b82f6;
+        }
+
+        .search-form select {
+            min-width: 190px;
+            padding: 14px;
+            background: #172235;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .search-form select:focus {
+            border-color: #3b82f6;
+            outline: none;
+        }
+
+        .search-form select option {
+            background: #172235;
+            color: white;
+        }
+
+        .search-form button {
+            padding: 14px 25px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .search-form button:hover {
+            background: #1d4ed8;
+        }
+
+        .search-form a {
+            color: #60a5fa;
+            text-decoration: none;
+            align-self: center;
+            padding: 10px;
+        }
+
+        .section-title {
+            font-size: 21px;
+            margin-bottom: 20px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: #172235;
+            border: 1px solid #263247;
+            border-radius: 14px;
+            padding: 22px;
+            transition: 0.2s;
+        }
+
+        .card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-3px);
+        }
+
+        .card h3 {
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: normal;
+        }
+
+        .rate {
+            font-size: 27px;
+            font-weight: bold;
+            margin: 18px 0 10px;
+            color: #f8fafc;
+        }
+
+        .card small {
+            color: #94a3b8;
+        }
+
+        .table-card {
+            background: #172235;
+            border: 1px solid #263247;
+            border-radius: 14px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+        .table-card h2 {
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 550px;
+        }
+
+        th, td {
+            padding: 17px 12px;
+            text-align: left;
+            border-bottom: 1px solid #263247;
+        }
+
+        th {
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: normal;
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #202e43;
+        }
+
+        .currency-code {
+            color: #60a5fa;
+            font-weight: bold;
+        }
+
+        .empty-result {
+            text-align: center;
+            color: #94a3b8;
+            padding: 30px;
+        }
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            padding: 35px 15px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .welcome h1 {
+                font-size: 26px;
+            }
+
+            .table-card {
+                padding: 15px;
+            }
+
+            .search-form input,
+            .search-form select,
+            .search-form button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">Currency Analytics</div>
+
+    <nav>
+        <a href="/">Главная</a>
+        <a href="/analytics/">Аналитика</a>
+        <a href="/admin/">Администрирование</a>
+    </nav>
+</header>
+
+<main class="container">
+
+    <section class="welcome">
+
+        <h1>Курсы валют</h1>
+
+        <p>
+            Отслеживайте курсы иностранных валют
+            относительно российского рубля.
+            Данные предоставляются Банком России.
+        </p>
+
+        <form method="GET" action="/" class="search-form">
+
+            <input
+                type="text"
+                name="q"
+                placeholder="Введите код или название валюты..."
+                value="{{ search_query }}"
+            >
+
+            <select name="category">
+
+                <option value="">Все категории</option>
+
+                {% for category in categories %}
+
+                    <option
+                        value="{{ category.id }}"
+                        {% if selected_category == category.id|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ category.name }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+            <button type="submit">Найти</button>
+
+            {% if search_query or selected_category %}
+                <a href="/">Сбросить</a>
+            {% endif %}
+
+        </form>
+
+    </section>
+
+    <h2 class="section-title">Основные валюты</h2>
+
+    <section class="cards">
+
+        {% for item in currency_data %}
+
+            {% if item.currency.code == 'USD' or item.currency.code == 'EUR' or item.currency.code == 'CNY' %}
+
+                <div class="card">
+
+                    <h3>
+                        {{ item.currency.code }} —
+                        {{ item.currency.name }}
+                    </h3>
+
+                    <div class="rate">
+
+                        {% if item.rate %}
+                            {{ item.rate.rate }} ₽
+                        {% else %}
+                            Нет данных
+                        {% endif %}
+
+                    </div>
+
+                    <small>
+                        {% if item.rate %}
+                            Дата: {{ item.rate.date }}
+                        {% else %}
+                            Курс отсутствует
+                        {% endif %}
+                    </small>
+
+                </div>
+
+            {% endif %}
+
+        {% endfor %}
+
+    </section>
+
+    <section class="table-card">
+
+        <h2>Все валюты</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Код</th>
+                    <th>Валюта</th>
+                    <th>Курс к рублю</th>
+                    <th>Дата обновления</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for item in currency_data %}
+
+                    <tr>
+
+                        <td class="currency-code">
+                            {{ item.currency.code }}
+                        </td>
+
+                        <td>
+                            {{ item.currency.name }}
+                        </td>
+
+                        {% if item.currency.code == 'RUB' %}
+
+                            <td>1.000000 ₽</td>
+                            <td>—</td>
+
+                        {% elif item.rate %}
+
+                            <td>{{ item.rate.rate }} ₽</td>
+                            <td>{{ item.rate.date }}</td>
+
+                        {% else %}
+
+                            <td>Нет данных</td>
+                            <td>—</td>
+
+                        {% endif %}
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+                        <td colspan="4" class="empty-result">
+                            По вашему запросу ничего не найдено.
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </section>
+
+</main>
+
+<footer>
+    Currency Analytics © 2026
+    <br>
+    Источник данных: Банк России
+</footer>
+
+</body>
+</html>

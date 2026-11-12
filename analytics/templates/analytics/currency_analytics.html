@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Аналитика — Currency Analytics</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0b1120;
+            color: #e5e7eb;
+        }
+
+        header {
+            background: #111827;
+            border-bottom: 1px solid #263247;
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 23px;
+            font-weight: bold;
+            color: #60a5fa;
+        }
+
+        nav {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        nav a:hover,
+        nav a.active {
+            color: #60a5fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-heading {
+            margin-bottom: 30px;
+        }
+
+        .page-heading h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .page-heading p {
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        .card {
+            background: #172235;
+            border: 1px solid #263247;
+            border-radius: 14px;
+            padding: 25px;
+            margin-bottom: 22px;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 22px;
+            font-size: 21px;
+        }
+
+        .currency-form select {
+            width: 100%;
+            max-width: 400px;
+            padding: 14px;
+            background: #0b1120;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .currency-form select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .currency-form option {
+            background: #172235;
+            color: white;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+
+        #chartStatus {
+            color: #94a3b8;
+            margin-top: 15px;
+        }
+
+        .statistics {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(200px, 1fr)
+            );
+            gap: 18px;
+        }
+
+        .stat {
+            background: #0f1b30;
+            border: 1px solid #263247;
+            padding: 22px;
+            border-radius: 12px;
+        }
+
+        .stat h3 {
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: normal;
+            margin-top: 0;
+        }
+
+        .stat p {
+            font-size: 26px;
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 0;
+        }
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            padding: 35px 15px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .page-heading h1 {
+                font-size: 26px;
+            }
+
+            .card {
+                padding: 18px;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">Currency Analytics</div>
+
+    <nav>
+        <a href="/">Главная</a>
+        <a href="/analytics/" class="active">Аналитика</a>
+        <a href="/admin/">Администрирование</a>
+    </nav>
+</header>
+
+<main class="container">
+
+    <section class="page-heading">
+        <h1>Аналитика валют</h1>
+
+        <p>
+            Изучайте динамику изменения валютных курсов
+            и сравнивайте показатели за последние 30 дней.
+        </p>
+    </section>
+
+    <section class="card">
+
+        <h2>Выбор валюты</h2>
+
+        <form method="get" class="currency-form">
+
+            <select
+                name="currency"
+                onchange="this.form.submit()"
+            >
+
+                {% for currency in currencies %}
+
+                    <option
+                        value="{{ currency.code }}"
+                        {% if selected_currency.code == currency.code %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ currency.code }} — {{ currency.name }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </form>
+
+    </section>
+
+    <section class="card">
+
+        <h2>
+            Динамика курса
+
+            {% if selected_currency %}
+                {{ selected_currency.code }} / RUB
+            {% endif %}
+        </h2>
+
+        <div class="chart-container">
+            <canvas id="rateChart"></canvas>
+        </div>
+
+        <p id="chartStatus">Загрузка графика...</p>
+
+    </section>
+
+    <section class="card">
+
+        <h2>Статистика за период</h2>
+
+        <div class="statistics">
+
+            <div class="stat">
+                <h3>Минимальный курс</h3>
+                <p id="minRate">—</p>
+            </div>
+
+            <div class="stat">
+                <h3>Максимальный курс</h3>
+                <p id="maxRate">—</p>
+            </div>
+
+            <div class="stat">
+                <h3>Средний курс</h3>
+                <p id="avgRate">—</p>
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+    Currency Analytics © 2026
+    <br>
+    Источник данных: Банк России
+</footer>
+
+{{ chart_data|json_script:"chart-data" }}
+
+<script>
+    const status = document.getElementById('chartStatus');
+
+    const chartData = JSON.parse(
+        document.getElementById('chart-data').textContent
+    );
+
+    const labels = chartData.labels;
+    const values = chartData.values;
+
+    if (typeof Chart === 'undefined') {
+
+        status.textContent =
+            'Ошибка: библиотека Chart.js не загрузилась.';
+
+    } else if (values.length === 0) {
+
+        status.textContent =
+            'Нет данных для построения графика.';
+
+    } else {
+
+        status.textContent = '';
+
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+
+        const average = values.reduce(
+            (sum, value) => sum + value, 0
+        ) / values.length;
+
+        document.getElementById('minRate').textContent =
+            min.toFixed(4) + ' ₽';
+
+        document.getElementById('maxRate').textContent =
+            max.toFixed(4) + ' ₽';
+
+        document.getElementById('avgRate').textContent =
+            average.toFixed(4) + ' ₽';
+
+        new Chart(
+            document.getElementById('rateChart'),
+            {
+                type: 'line',
+
+                data: {
+                    labels: labels,
+
+                    datasets: [{
+                        label: 'Курс к рублю',
+                        data: values,
+                        borderColor: '#60a5fa',
+                        backgroundColor: 'rgba(96, 165, 250, 0.12)',
+                        pointBackgroundColor: '#60a5fa',
+                        pointBorderColor: '#60a5fa',
+                        borderWidth: 3,
+                        pointRadius: 3,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#cbd5e1'
+                            }
+                        }
+                    },
+
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#94a3b8'
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            }
+                        },
+
+                        y: {
+                            beginAtZero: false,
+
+                            ticks: {
+                                color: '#94a3b8'
+                            },
+
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            }
+                        }
+                    }
+                }
+            }
+        );
+    }
+</script>
+
+</body>
+</html>
